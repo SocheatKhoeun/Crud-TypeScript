@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import { User } from "./models/User";
 import UserForm, { FormData } from "./components/UserForm";
 import UserTable from "./components/UserTable";
+import Swal from "sweetalert2"; // Import SweetAlert2
 
 const App: React.FC = () => {
   const [users, setUsers] = useState<User[]>([
@@ -36,24 +37,33 @@ const App: React.FC = () => {
     }));
   };
 
-  const handleAdd = (): void => {
+  const handleAdd = async (): Promise<void> => {
     setIsAddingNew(true);
     resetForm();
+    // Removed SweetAlert for Add User
   };
 
-  const handleSave = (): void => {
+  const handleSave = async (): Promise<void> => {
     if (
       !formData.name.trim() ||
       !formData.age.trim() ||
       !formData.address.trim()
     ) {
-      alert("Please fill in all fields");
+      await Swal.fire({
+        title: "Missing Fields",
+        text: "Please fill in all fields",
+        icon: "warning",
+      });
       return;
     }
 
     const ageNum = parseInt(formData.age);
     if (isNaN(ageNum) || ageNum <= 0) {
-      alert("Please enter a valid age");
+      await Swal.fire({
+        title: "Invalid Age",
+        text: "Please enter a valid age",
+        icon: "error",
+      });
       return;
     }
 
@@ -73,6 +83,11 @@ const App: React.FC = () => {
         )
       );
       setEditingId(null);
+      await Swal.fire({
+        title: "User Updated",
+        text: "The user has been updated successfully.",
+        icon: "success",
+      });
     } else {
       // Add new user
       const newUser: User = {
@@ -84,12 +99,17 @@ const App: React.FC = () => {
       };
       setUsers((prev) => [...prev, newUser]);
       setIsAddingNew(false);
+      await Swal.fire({
+        title: "User Added",
+        text: "The user has been added successfully.",
+        icon: "success",
+      });
     }
 
     resetForm();
   };
 
-  const handleEdit = (user: User): void => {
+  const handleEdit = async (user: User): Promise<void> => {
     setEditingId(user.id);
     setFormData({
       name: user.name,
@@ -105,9 +125,23 @@ const App: React.FC = () => {
     resetForm();
   };
 
-  const handleDelete = (id: number): void => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
+  const handleDelete = async (id: number): Promise<void> => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you want to delete this user?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
+    if (result.isConfirmed) {
       setUsers((prev) => prev.filter((user) => user.id !== id));
+      await Swal.fire({
+        title: "Deleted!",
+        text: "The user has been deleted.",
+        icon: "success",
+      });
     }
   };
 
